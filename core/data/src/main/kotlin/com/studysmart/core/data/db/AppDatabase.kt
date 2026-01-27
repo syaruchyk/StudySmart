@@ -18,6 +18,8 @@ import com.studysmart.core.data.db.entities.QuizEntity
 import com.studysmart.core.data.db.entities.SessionEntity
 import com.studysmart.core.data.db.entities.SessionSnapshotEntity
 import com.studysmart.core.data.db.entities.SrsStateEntity
+import androidx.room.AutoMigration
+
 
 @Database(
     entities = [
@@ -33,8 +35,12 @@ import com.studysmart.core.data.db.entities.SrsStateEntity
         SessionSnapshotEntity::class
     ],
     version = 2,
-    exportSchema = true
+    exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2)
+    ]
 )
+
 abstract class AppDatabase : RoomDatabase() {
     abstract fun documentDao(): DocumentDao
     abstract fun quizDao(): QuizDao
@@ -52,7 +58,6 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "studysmart_db"
                 )
-                .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance
