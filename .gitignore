@@ -17,3 +17,12 @@ local.properties
 # build/agent logs
 *.txt
 .agent/
+
+# android build outputs
+**/build/
+**/.gradle/
+
+
+# ignore all module build dirs
+**/build/
+
