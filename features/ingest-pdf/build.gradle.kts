@@ -24,13 +24,20 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
-    
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.pdfbox.android)
     implementation(libs.mlkit.text.recognition)
+
     implementation(libs.kotlinx.coroutines.android)
+
+    // Room
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.mockk)
 }
+
