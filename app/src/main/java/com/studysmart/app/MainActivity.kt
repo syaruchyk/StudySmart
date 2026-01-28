@@ -25,8 +25,15 @@ class MainActivity : ComponentActivity() {
                         val context = applicationContext
                         val database = com.studysmart.core.data.db.AppDatabase.getInstance(context)
                         // Using the default PdfPipeline inside PdfIngestionUseCase for now
-                        val useCase = com.studysmart.features.ingest.pdf.PdfIngestionUseCase(context, database)
-                        return IngestPdfViewModel(useCase) as T
+                        val ingestUseCase = com.studysmart.features.ingest.pdf.PdfIngestionUseCase(context, database)
+                        
+                        val generateQuizUseCase = com.studysmart.features.generatequiz.domain.GenerateQuizUseCase(
+                            documentDao = database.documentDao(),
+                            quizDao = database.quizDao()
+                            // using default KtorGeminiDataSource
+                        )
+
+                        return IngestPdfViewModel(ingestUseCase, generateQuizUseCase) as T
                     }
                 }
             }

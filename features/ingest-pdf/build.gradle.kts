@@ -32,6 +32,8 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
 
+    implementation(project(":features:generate-quiz"))
+    
     implementation(libs.androidx.core.ktx)
     implementation(libs.pdfbox.android)
     implementation(libs.mlkit.text.recognition)

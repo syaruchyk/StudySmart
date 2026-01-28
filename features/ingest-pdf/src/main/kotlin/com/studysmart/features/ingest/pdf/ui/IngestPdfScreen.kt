@@ -55,6 +55,19 @@ fun IngestPdfScreen(
                         Text(text = "Ingesting PDF...")
                     }
                 }
+                is IngestUiState.GeneratingQuiz -> {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(text = "Generating Quiz...")
+                        Text(text = "This might take a moment.", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
                 is IngestUiState.Success -> {
                     // Trigger navigation or show success
                     // For now, simple text + button to proceed
