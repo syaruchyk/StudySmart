@@ -1,0 +1,79 @@
+package com.studysmart.features.generatequiz.data
+
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+
+@Serializable
+data class GeminiRequest(
+    val contents: List<Content>
+)
+
+@Serializable
+data class Content(
+    val parts: List<Part>
+)
+
+@Serializable
+data class Part(
+    val text: String
+)
+
+@Serializable
+data class GeminiResponse(
+    val candidates: List<Candidate>?
+)
+
+@Serializable
+data class Candidate(
+    val content: Content?,
+    val finishReason: String?
+)
+
+interface GeminiDataSource {
+    suspend fun generateQuizJson(prompt: String, apiKey: String): String
+}
+
+class KtorGeminiDataSource : GeminiDataSource {
+    private val client = HttpClient(Android) {
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+                prettyPrint = true
+                isLenient = true
+            })
+        }
+    }
+
+    override suspend fun generateQuizJson(prompt: String, apiKey: String): String {
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey"
+        
+        val requestBody = GeminiRequest(
+            contents = listOf(
+                Content(parts = listOf(Part(text = prompt)))
+            )
+        )
+
+        try {
+            val response: GeminiResponse = client.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }.body()
+
+            return response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text 
+                ?: throw Exception("No content in Gemini response")
+                
+        } catch (e: Exception) {
+            throw Exception("Gemini API Call Failed: ${e.message}", e)
+        }
+    }
+}
