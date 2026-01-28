@@ -37,6 +37,15 @@ interface PracticeDao {
     """)
     suspend fun getRecentFailures(limit: Int): List<AttemptEntity>
 
+    @Query("SELECT * FROM sessions WHERE id = :sessionId")
+    suspend fun getSession(sessionId: Long): SessionEntity?
+
+    @Query("SELECT * FROM srs_states WHERE questionId = :questionId")
+    suspend fun getSrsState(questionId: Long): SrsStateEntity?
+
+    @Query("SELECT * FROM attempts WHERE sessionId = :sessionId")
+    suspend fun getAttempts(sessionId: Long): List<AttemptEntity>
+
     // Simplified stats query example
     @Query("""
         SELECT q.quizId as topicId, COUNT(*) as totalAttempts, SUM(CASE WHEN a.isCorrect THEN 1 ELSE 0 END) as correctAttempts
