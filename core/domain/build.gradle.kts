@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.androidLibrary)
@@ -11,7 +13,7 @@ android {
     defaultConfig {
         minSdk = 26
         
-        val localProperties = java.util.Properties()
+        val localProperties = Properties()
         val localFile = project.rootProject.file("local.properties")
         if (localFile.exists()) {
             localProperties.load(localFile.inputStream())
