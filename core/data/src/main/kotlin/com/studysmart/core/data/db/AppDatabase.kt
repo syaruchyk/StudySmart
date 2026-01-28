@@ -18,7 +18,6 @@ import com.studysmart.core.data.db.entities.QuizEntity
 import com.studysmart.core.data.db.entities.SessionEntity
 import com.studysmart.core.data.db.entities.SessionSnapshotEntity
 import com.studysmart.core.data.db.entities.SrsStateEntity
-import androidx.room.AutoMigration
 
 
 @Database(
@@ -36,9 +35,7 @@ import androidx.room.AutoMigration
     ],
     version = 2,
     exportSchema = true,
-    autoMigrations = [
-        AutoMigration(from = 1, to = 2)
-    ]
+    
 )
 
 abstract class AppDatabase : RoomDatabase() {

@@ -1,5 +1,6 @@
 package com.studysmart.core.data.db.entities
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -9,7 +10,8 @@ import androidx.room.PrimaryKey
 data class DocumentEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val filename: String,
-    val uri: String,
+    @ColumnInfo(defaultValue = "")
+    val uri: String = "",
     val importedAt: Long,
     val summary: String?
 )
