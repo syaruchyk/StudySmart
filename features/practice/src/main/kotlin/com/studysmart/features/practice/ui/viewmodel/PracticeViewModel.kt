@@ -3,7 +3,9 @@ package com.studysmart.features.practice.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studysmart.features.practice.domain.*
+import com.studysmart.core.domain.telemetry.TelemetryClient
 import kotlinx.coroutines.CoroutineExceptionHandler
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,8 +38,10 @@ class PracticeViewModel(
     private val startSessionUseCase: StartSessionUseCase,
     private val getNextQuestionUseCase: GetNextQuestionUseCase,
     private val answerQuestionUseCase: AnswerQuestionUseCase,
-    private val getSessionSummaryUseCase: GetSessionSummaryUseCase
+    private val getSessionSummaryUseCase: GetSessionSummaryUseCase,
+    private val telemetry: TelemetryClient
 ) : ViewModel() {
+
 
     private val _state = MutableStateFlow(PracticeViewState())
     val state: StateFlow<PracticeViewState> = _state.asStateFlow()
@@ -54,12 +58,23 @@ class PracticeViewModel(
         viewModelScope.launch(handler + Dispatchers.IO) {
             _state.value = _state.value.copy(uiState = PracticeUiState.Loading)
             val session = startSessionUseCase(quizId)
+            
+            telemetry.sendEvent("practice_session_started", mapOf(
+                "quiz_id_hash" to quizId
+            ))
+
+            val nextState = determineNextState(session)
+            if (nextState is PracticeUiState.ShowingQuestion) {
+                trackQuestionShown(nextState.question)
+            }
+
             _state.value = _state.value.copy(
                 currentSession = session,
-                uiState = determineNextState(session)
+                uiState = nextState
             )
         }
     }
+
 
     fun submitAnswer(optionId: Long, timeTakenMs: Long) {
         val session = _state.value.currentSession ?: return
@@ -75,6 +90,11 @@ class PracticeViewModel(
             val correctOption = currentQuestion.options.find { it.isCorrect }
             val isCorrect = currentQuestion.options.find { it.id == optionId }?.isCorrect == true
             
+            telemetry.sendEvent("question_answered", mapOf(
+                "is_correct" to isCorrect,
+                "duration_ms" to timeTakenMs
+            ))
+
             _state.value = _state.value.copy(
                 currentSession = updatedSession,
                 uiState = PracticeUiState.Feedback(
@@ -86,6 +106,7 @@ class PracticeViewModel(
         }
     }
 
+
     fun nextQuestion() {
         val session = _state.value.currentSession ?: return
         
@@ -93,12 +114,30 @@ class PracticeViewModel(
             _state.value = _state.value.copy(uiState = PracticeUiState.Loading)
             
             val updatedSession = getNextQuestionUseCase(session)
+            val nextState = determineNextState(updatedSession)
+            
+            if (nextState is PracticeUiState.ShowingQuestion) {
+                trackQuestionShown(nextState.question)
+            } else if (nextState is PracticeUiState.Completed) {
+                telemetry.sendEvent("practice_session_completed", mapOf(
+                    "correct_answers" to updatedSession.stats.correctAnswers,
+                    "total_answered" to updatedSession.stats.totalQuestionsAnswered
+                ))
+            }
+
             _state.value = _state.value.copy(
                 currentSession = updatedSession,
-                uiState = determineNextState(updatedSession)
+                uiState = nextState
             )
         }
     }
+
+    private fun trackQuestionShown(question: SessionQuestion) {
+        telemetry.sendEvent("question_shown", mapOf(
+            "question_id_hash" to question.id
+        ))
+    }
+
 
     private fun determineNextState(session: PracticeSession): PracticeUiState {
         return when (session.state) {
