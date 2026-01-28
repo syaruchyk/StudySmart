@@ -57,7 +57,7 @@ fun PracticeQuestionContent(
             .padding(16.dp)
     ) {
         LinearProgressIndicator(
-            progress = { if (total > 0) progress.toFloat() / total else 0f },
+            progress = if (total > 0) progress.toFloat() / total else 0f,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
