@@ -9,6 +9,8 @@ import com.studysmart.features.generatequiz.data.GeminiDataSource
 import com.studysmart.features.generatequiz.data.KtorGeminiDataSource
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import com.studysmart.core.domain.telemetry.TelemetryClient
+
 
 // Internal models for parsing LLM response
 @Serializable
@@ -34,8 +36,10 @@ private data class OptionJson(
 class GenerateQuizUseCase(
     private val documentDao: DocumentDao,
     private val quizDao: QuizDao,
-    private val geminiDataSource: GeminiDataSource = KtorGeminiDataSource()
+    private val telemetry: TelemetryClient,
+    private val geminiDataSource: GeminiDataSource = KtorGeminiDataSource(telemetry)
 ) {
+
 
     private val jsonParser = Json { 
         ignoreUnknownKeys = true 

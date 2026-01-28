@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
 }
 
+
+
 android {
     namespace = "com.studysmart.app"
     compileSdk = 34
@@ -55,7 +57,11 @@ dependencies {
     implementation(project(":features:review"))
     implementation(project(":features:insights"))
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+
     implementation(libs.androidx.core.ktx)
+
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

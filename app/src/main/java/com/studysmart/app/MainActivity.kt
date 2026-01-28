@@ -12,10 +12,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.studysmart.features.ingest.pdf.ui.IngestPdfScreen
 import com.studysmart.features.ingest.pdf.ui.IngestPdfViewModel
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.studysmart.core.data.telemetry.FirebaseTelemetryAdapter
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        val telemetryClient = FirebaseTelemetryAdapter(FirebaseAnalytics.getInstance(this))
+
         
         // Manual ViewModel instantiation for now
         val ingestPdfViewModel by viewModels<IngestPdfViewModel>(
@@ -25,13 +31,15 @@ class MainActivity : ComponentActivity() {
                         val context = applicationContext
                         val database = com.studysmart.core.data.db.AppDatabase.getInstance(context)
                         // Using the default PdfPipeline inside PdfIngestionUseCase for now
-                        val ingestUseCase = com.studysmart.features.ingest.pdf.PdfIngestionUseCase(context, database)
+                        val ingestUseCase = com.studysmart.features.ingest.pdf.PdfIngestionUseCase(context, database, telemetryClient)
                         
                         val generateQuizUseCase = com.studysmart.features.generatequiz.domain.GenerateQuizUseCase(
                             documentDao = database.documentDao(),
-                            quizDao = database.quizDao()
+                            quizDao = database.quizDao(),
+                            telemetry = telemetryClient
                             // using default KtorGeminiDataSource
                         )
+
 
                         return IngestPdfViewModel(ingestUseCase, generateQuizUseCase) as T
                     }

@@ -8,49 +8,64 @@ import com.studysmart.core.data.db.entities.ChunkEntity
 import com.studysmart.core.data.db.entities.DocumentEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.studysmart.core.domain.telemetry.TelemetryClient
+
 
 class PdfIngestionUseCase(
     private val context: Context,
     private val database: AppDatabase,
+    private val telemetry: TelemetryClient,
     private val textExtractor: TextExtractor = PdfPipeline(context)
 ) {
 
+
     suspend fun invoke(uri: Uri): Long = withContext(Dispatchers.IO) {
-        // 1. Resolve Filename
-        val filename = getFileName(uri) ?: uri.lastPathSegment ?: "unknown.pdf"
+        val startTime = System.currentTimeMillis()
+        telemetry.sendEvent("ingest_started")
 
-        // 2. Run Pipeline
-        val result = textExtractor.extract(uri)
+        try {
+            // 1. Resolve Filename
+            val filename = getFileName(uri) ?: uri.lastPathSegment ?: "unknown.pdf"
 
-        // 3. Persist
-        val document = DocumentEntity(
-            filename = filename,
-            uri = uri.toString(),
-            importedAt = System.currentTimeMillis(),
-            summary = null
-        )
+            // 2. Run Pipeline
+            val result = textExtractor.extract(uri)
 
-        // Manual Transaction
-        // DocumentDao.insertDocumentWithChunks is not defined as a single transaction method in the previous steps,
-        // so we orchestrate it here or use the DAO methods available.
-        // Assuming we have insertDocument and insertChunks.
-        
-        val docId = database.documentDao().insertDocument(document)
-        
-        val chunks = result.pages.map { page ->
-            ChunkEntity(
-                documentId = docId,
-                content = page.text,
-                pageNumber = page.pageNumber,
-                startOffset = 0,
-                endOffset = page.text.length
+            // 3. Persist
+            val document = DocumentEntity(
+                filename = filename,
+                uri = uri.toString(),
+                importedAt = System.currentTimeMillis(),
+                summary = null
             )
+            
+            val docId = database.documentDao().insertDocument(document)
+            
+            val chunks = result.pages.map { page ->
+                ChunkEntity(
+                    documentId = docId,
+                    content = page.text,
+                    pageNumber = page.pageNumber,
+                    startOffset = 0,
+                    endOffset = page.text.length
+                )
+            }
+            
+            // Batch insert chunks
+            database.documentDao().insertChunks(chunks)
+
+            telemetry.sendEvent("ingest_completed", mapOf(
+                "duration_ms" to (System.currentTimeMillis() - startTime),
+                "pages_count" to result.pages.size,
+                "doc_id_hash" to docId
+            ))
+            
+            return@withContext docId
+        } catch (e: Exception) {
+            telemetry.sendEvent("ingest_failed", mapOf(
+                "error_type" to (e::class.simpleName ?: "Unknown")
+            ))
+            throw e
         }
-        
-        // Batch insert chunks
-        database.documentDao().insertChunks(chunks)
-        
-        return@withContext docId
     }
 
     private fun getFileName(uri: Uri): String? {

@@ -11,13 +11,17 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.studysmart.core.data.telemetry.MockTelemetryClient
+
 
 class GenerateQuizUseCaseTest {
 
     private val documentDao = mockk<DocumentDao>()
     private val quizDao = mockk<QuizDao>(relaxed = true)
     private val geminiDataSource = mockk<GeminiDataSource>()
-    private val useCase = GenerateQuizUseCase(documentDao, quizDao, geminiDataSource)
+    private val telemetry = MockTelemetryClient()
+    private val useCase = GenerateQuizUseCase(documentDao, quizDao, telemetry, geminiDataSource)
+
 
     @Test
     fun `invoke generates and saves quiz`() = runTest {

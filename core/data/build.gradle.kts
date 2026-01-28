@@ -42,6 +42,9 @@ ksp {
 dependencies {
     implementation(project(":core:domain"))
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

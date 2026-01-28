@@ -14,6 +14,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.studysmart.core.data.telemetry.MockTelemetryClient
+
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -24,6 +26,8 @@ class PdfIngestionUseCaseTest {
     private val database = mockk<AppDatabase>()
     private val documentDao = mockk<DocumentDao>(relaxed = true)
     private val extractor = mockk<TextExtractor>()
+    private val telemetry = MockTelemetryClient()
+
 
     @Test
     fun `invoke extracts text and persists to database`() = runTest {
@@ -48,7 +52,8 @@ class PdfIngestionUseCaseTest {
         // If we want to test filename resolution, we need to mock ContentResolver query
         // For now let's rely on fallback to lastPathSegment "file.pdf"
         
-        val useCase = PdfIngestionUseCase(context, database, extractor)
+        val useCase = PdfIngestionUseCase(context, database, telemetry, extractor)
+
         
         // Act
         val resultId = useCase.invoke(uri)

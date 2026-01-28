@@ -12,6 +12,8 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import com.studysmart.core.domain.telemetry.TelemetryClient
+
 
 @Serializable
 data class GeminiRequest(
@@ -43,7 +45,10 @@ interface GeminiDataSource {
     suspend fun generateQuizJson(prompt: String, apiKey: String): String
 }
 
-class KtorGeminiDataSource : GeminiDataSource {
+class KtorGeminiDataSource(
+    private val telemetry: TelemetryClient
+) : GeminiDataSource {
+
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {
             json(Json {
@@ -55,6 +60,9 @@ class KtorGeminiDataSource : GeminiDataSource {
     }
 
     override suspend fun generateQuizJson(prompt: String, apiKey: String): String {
+        val startTime = System.currentTimeMillis()
+        telemetry.sendEvent("quiz_generation_started")
+
         val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey"
         
         val requestBody = GeminiRequest(
@@ -69,10 +77,19 @@ class KtorGeminiDataSource : GeminiDataSource {
                 setBody(requestBody)
             }.body()
 
-            return response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text 
+            val text = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text 
                 ?: throw Exception("No content in Gemini response")
+
+            telemetry.sendEvent("quiz_generation_completed", mapOf(
+                "duration_ms" to (System.currentTimeMillis() - startTime)
+            ))
+
+            return text
                 
         } catch (e: Exception) {
+            telemetry.sendEvent("quiz_generation_failed", mapOf(
+                "error_type" to (e::class.simpleName ?: "Unknown")
+            ))
             throw Exception("Gemini API Call Failed: ${e.message}", e)
         }
     }
