@@ -47,6 +47,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:domain"))
+    implementation(project(":core:data"))
     implementation(project(":features:ingest-pdf"))
     implementation(project(":features:generate-quiz"))
     implementation(project(":features:practice"))
@@ -55,6 +57,8 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
