@@ -29,5 +29,11 @@ dependencies {
     implementation(libs.androidx.core.ktx)
 
     implementation(libs.io.ktor.client.core)
+    implementation(libs.io.ktor.client.android)
+    implementation(libs.io.ktor.client.content.negotiation)
     implementation(libs.io.ktor.serialization.kotlinx.json)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

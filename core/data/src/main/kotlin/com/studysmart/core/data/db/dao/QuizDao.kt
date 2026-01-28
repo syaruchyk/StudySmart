@@ -40,4 +40,7 @@ interface QuizDao {
 
     @Query("SELECT * FROM options WHERE questionId = :questionId")
     suspend fun getOptionsForQuestion(questionId: Long): List<OptionEntity>
+
+    @Query("SELECT * FROM quizzes WHERE documentId = :documentId")
+    suspend fun getQuizzesForDocument(documentId: Long): List<QuizEntity>
 }

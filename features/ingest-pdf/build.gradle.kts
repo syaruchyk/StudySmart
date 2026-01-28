@@ -19,15 +19,33 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
+    }
 }
 
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
 
+    implementation(project(":features:generate-quiz"))
+    
     implementation(libs.androidx.core.ktx)
     implementation(libs.pdfbox.android)
     implementation(libs.mlkit.text.recognition)
+
+    // Compose
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    debugImplementation(libs.androidx.ui.tooling)
 
     implementation(libs.kotlinx.coroutines.android)
 
